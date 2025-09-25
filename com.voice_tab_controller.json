@@ -1,0 +1,9 @@
+{
+  "name": "com.voice_tab_controller",
+  "description": "Voice Tab Controller",
+  "path": "C:\\Users\\andjo\\Desktop\\Software Testing Projects\\Chrome Extension\\voice_server.js",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://lcjhamcgjadgoefbkfdaihgmdladdnhc/"
+  ]
+}
