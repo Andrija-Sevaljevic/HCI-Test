@@ -1,31 +1,21 @@
-let port;
+// background.js
 
+// Optional: handle messages from popup or content scripts
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-    if (msg.action === "connectNative") {
-        try {
-            port = chrome.runtime.connectNative('com.voice_tab_controller');
-
-            port.onMessage.addListener((msg) => {
-                console.log("Got message from Node:", msg);
-            });
-
-            port.onDisconnect.addListener(() => {
-                console.error("Disconnected:", chrome.runtime.lastError);
-                port = null;
-            });
-
-            sendResponse({ status: "connected" });
-        } catch (err) {
-            sendResponse({ status: "error", message: err.message });
-        }
+    if (msg.startRecognition) {
+        chrome.runtime.sendNativeMessage(
+            "com.yourname.voicehost",
+            { startRecognition: true },
+            (response) => {
+                if (chrome.runtime.lastError) {
+                    console.error("Native host error:", chrome.runtime.lastError);
+                    sendResponse({ error: chrome.runtime.lastError.message });
+                    return;
+                }
+                sendResponse(response);
+            }
+        );
+        // Indicate async response
         return true;
     }
-
-    if (msg.startRecognition && port) {
-        port.postMessage({ startRecognition: true });
-        sendResponse({ status: "started recognition" });
-        return true;
-    }
-
-    sendResponse({ status: "ok" });
 });

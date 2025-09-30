@@ -1,4 +1,6 @@
 // voice_server.js
+
+// Function to send JSON to Chrome
 function sendMessage(msg) {
     const json = JSON.stringify(msg);
     const buffer = Buffer.alloc(4);
@@ -11,28 +13,27 @@ function sendMessage(msg) {
 process.stdin.on("readable", () => {
     let chunk;
     while ((chunk = process.stdin.read(4))) {
+        if (!chunk) return;
+
         const msgLength = chunk.readUInt32LE(0);
         const msgBuffer = process.stdin.read(msgLength);
         if (!msgBuffer) return;
 
-        const message = JSON.parse(msgBuffer.toString());
-        console.log("Got from Chrome:", message);
+        try {
+            const message = JSON.parse(msgBuffer.toString());
 
-        if (message.startRecognition) {
-            sendMessage({ reply: "Starting recognition" });
-            // You can call your Vosk/audio logic here
-        } else {
-            sendMessage({ reply: "Message received" });
+            // Always respond to Chrome
+            sendMessage({ reply: "Message received", original: message });
+
+            if (message.startRecognition) {
+                // Replace this with your Vosk/AudioRecorder logic
+                sendMessage({ reply: "Starting recognition" });
+            }
+        } catch (err) {
+            sendMessage({ error: "Failed to parse message" });
         }
     }
 });
 
-console.log("Voice server started, waiting for Chrome messages...");
-
 // Keep Node alive
 setInterval(() => {}, 1000);
-
-process.on('SIGINT', () => {
-    console.log('Exiting voice server...');
-    process.exit();
-});
