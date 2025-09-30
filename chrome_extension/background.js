@@ -1,33 +1,31 @@
 let port;
 
-chrome.runtime.onMessage.addListener((msg) => {
-  if (msg.action === "connectNative") {
-    port = chrome.runtime.connectNative('com.voice_tab_controller');
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    if (msg.action === "connectNative") {
+        try {
+            port = chrome.runtime.connectNative('com.voice_tab_controller');
 
-    port.onMessage.addListener((msg) => {
-      const command = msg.command.toLowerCase();
-      console.log("Command from Node.js:", command);
+            port.onMessage.addListener((msg) => {
+                console.log("Got message from Node:", msg);
+            });
 
-      if (command.includes("open new tab")) {
-        chrome.tabs.create({});
-      } else if (command.includes("close tab")) {
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-          if (tabs[0]) chrome.tabs.remove(tabs[0].id);
-        });
-      } else if (command.includes("duplicate tab")) {
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-          if (tabs[0]) chrome.tabs.duplicate(tabs[0].id);
-        });
-      } else if (command.startsWith("search for")) {
-        const query = command.replace("search for", "").trim();
-        chrome.tabs.create({ url: `https://www.google.com/search?q=${encodeURIComponent(query)}` });
-      }
-    });
+            port.onDisconnect.addListener(() => {
+                console.error("Disconnected:", chrome.runtime.lastError);
+                port = null;
+            });
 
-    port.onDisconnect.addListener(() => {
-      console.log("Disconnected from native app");
-    });
+            sendResponse({ status: "connected" });
+        } catch (err) {
+            sendResponse({ status: "error", message: err.message });
+        }
+        return true;
+    }
 
-    console.log("Connected to native app");
-  }
+    if (msg.startRecognition && port) {
+        port.postMessage({ startRecognition: true });
+        sendResponse({ status: "started recognition" });
+        return true;
+    }
+
+    sendResponse({ status: "ok" });
 });

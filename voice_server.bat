@@ -1,2 +1,2 @@
 @echo off
-node "C:\Users\andjo\Desktop\Software Testing Projects\Chrome Extension\voice_server.js"
+"C:\Program Files\nodejs\node.exe" "C:\Users\andjo\Desktop\Software Testing Projects\Chrome Extension\voice_server.js"
